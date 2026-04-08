@@ -1,16 +1,44 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { TaskSidebar } from "@/components/TaskSidebar";
+import { TaskList } from "@/components/TaskList";
+import { useTaskManager } from "@/hooks/useTaskManager";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
+  const {
+    tasks,
+    projects,
+    currentView,
+    setCurrentView,
+    searchQuery,
+    setSearchQuery,
+    addTask,
+    toggleTask,
+    deleteTask,
+    stats,
+  } = useTaskManager();
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
-    </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <TaskSidebar
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          projects={projects}
+          stats={stats}
+        />
+        <TaskList
+          tasks={tasks}
+          currentView={currentView}
+          projects={projects}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onToggle={toggleTask}
+          onDelete={deleteTask}
+          onAdd={addTask}
+        />
+      </div>
+    </SidebarProvider>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
