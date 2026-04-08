@@ -1,5 +1,4 @@
-import { Inbox, CalendarDays, CalendarClock, CheckCircle2, FolderKanban, Plus } from "lucide-react";
-import { NavLink } from "@/components/NavLink";
+import { Inbox, CalendarDays, CalendarClock, CheckCircle2, FolderKanban } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -13,14 +12,24 @@ import {
   SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Project, TaskView } from "@/types/task";
+import { Project, Task, TaskView } from "@/types/task";
 import { Badge } from "@/components/ui/badge";
+import { TaskCalendar } from "@/components/TaskCalendar";
+import { StreakDisplay } from "@/components/StreakDisplay";
 
 interface TaskSidebarProps {
   currentView: TaskView;
   onViewChange: (view: TaskView) => void;
   projects: Project[];
   stats: { total: number; today: number; completed: number };
+  allTasks: Task[];
+  streakData: {
+    currentStreak: number;
+    longestStreak: number;
+    todayCompleted: number;
+    contributionData: { date: string; count: number }[];
+  };
+  onDateSelect: (date: string) => void;
 }
 
 const mainNav = [
@@ -30,7 +39,7 @@ const mainNav = [
   { id: "completed" as const, title: "Completed", icon: CheckCircle2, statKey: "completed" as const },
 ];
 
-export function TaskSidebar({ currentView, onViewChange, projects, stats }: TaskSidebarProps) {
+export function TaskSidebar({ currentView, onViewChange, projects, stats, allTasks, streakData, onDateSelect }: TaskSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
 
@@ -101,6 +110,24 @@ export function TaskSidebar({ currentView, onViewChange, projects, stats }: Task
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {!collapsed && (
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel>Calendar</SidebarGroupLabel>
+              <SidebarGroupContent className="px-2">
+                <TaskCalendar tasks={allTasks} onDateSelect={onDateSelect} />
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            <SidebarGroup>
+              <SidebarGroupLabel>Activity</SidebarGroupLabel>
+              <SidebarGroupContent className="px-2 pb-2">
+                <StreakDisplay {...streakData} />
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-3">
