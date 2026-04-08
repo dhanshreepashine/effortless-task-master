@@ -75,8 +75,68 @@ export function useTaskManager() {
     completed: tasks.filter((t) => t.completed).length,
   }), [tasks, today]);
 
+  // Streak calculation
+  const streakData = useMemo(() => {
+    const completedByDate = new Map<string, number>();
+    tasks.forEach((t) => {
+      if (t.completedAt) {
+        const d = t.completedAt.split("T")[0];
+        completedByDate.set(d, (completedByDate.get(d) || 0) + 1);
+      }
+    });
+
+    // Current streak
+    let currentStreak = 0;
+    const d = new Date();
+    // Check today first
+    const todayStr = d.toISOString().split("T")[0];
+    if (completedByDate.has(todayStr)) {
+      currentStreak = 1;
+      d.setDate(d.getDate() - 1);
+    }
+    while (true) {
+      const dateStr = d.toISOString().split("T")[0];
+      if (completedByDate.has(dateStr)) {
+        currentStreak++;
+        d.setDate(d.getDate() - 1);
+      } else break;
+    }
+
+    // Longest streak
+    const sortedDates = Array.from(completedByDate.keys()).sort();
+    let longestStreak = 0;
+    let tempStreak = 0;
+    for (let i = 0; i < sortedDates.length; i++) {
+      if (i === 0) { tempStreak = 1; }
+      else {
+        const prev = new Date(sortedDates[i - 1] + "T00:00:00");
+        const curr = new Date(sortedDates[i] + "T00:00:00");
+        const diffDays = (curr.getTime() - prev.getTime()) / 86400000;
+        tempStreak = diffDays === 1 ? tempStreak + 1 : 1;
+      }
+      longestStreak = Math.max(longestStreak, tempStreak);
+    }
+
+    // Contribution data (last 49 days)
+    const contributionData: { date: string; count: number }[] = [];
+    for (let i = 48; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split("T")[0];
+      contributionData.push({ date: dateStr, count: completedByDate.get(dateStr) || 0 });
+    }
+
+    const todayCompleted = completedByDate.get(todayStr) || 0;
+
+    return { currentStreak, longestStreak, todayCompleted, contributionData };
+  }, [tasks]);
+
+  // All tasks (unfiltered) for calendar
+  const allTasks = tasks;
+
   return {
     tasks: filteredTasks,
+    allTasks,
     projects,
     currentView,
     setCurrentView,
@@ -86,5 +146,6 @@ export function useTaskManager() {
     toggleTask,
     deleteTask,
     stats,
+    streakData,
   };
 }
